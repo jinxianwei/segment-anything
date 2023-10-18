@@ -63,19 +63,25 @@ def embed_point_predict(input_point=None,
     max_score_idx = np.argmax(scores)
     mask_input = logits[max_score_idx, :, :]
     mask = masks[max_score_idx].astype(int)
-    return mask, mask_input
+    return mask, mask_input, input_point, input_label
         
 def embed_box_and_point_predict(input_point=None,
                                 input_label=None,
                                 input_box=None,
                                 predictor=None):
-
-    masks, _, _ = predictor.predict_torch(
+    # TODO: 判断点是否在矩形框，框的大小会随着点的位置发生更改
+    min_x, min_y, max_x, max_y = input_box
+    all_point_x, all_point_y = input_point[:, 0], input_point[:, 1]
+    input_box[0] = min(min_x, np.min(all_point_x))
+    input_box[1] = min(min_y, np.min(all_point_y))
+    input_box[2] = max(max_x, np.max(all_point_x))
+    input_box[3] = max(max_y, np.max(all_point_y))
+    masks, _, _ = predictor.predict(
         point_coords=input_point,
         point_labels=input_label,
-        boxes=input_box,
+        box=input_box,
         multimask_output=False)
-    return masks
+    return masks, input_box, input_point, input_label
 
 if __name__ == "__main__":
     # for visualize
@@ -91,68 +97,62 @@ if __name__ == "__main__":
     
 
     
-    input_boxes = torch.tensor([
-    [900, 900, 1050, 1050],
-    [0, 0, 400, 400],
-    [0, 800, 150, 1050]], device=predictor.device)
-    input_point = torch.tensor(np.array([[20, 20]]), device=predictor.device)
-    input_label = torch.tensor(np.array([0]), device=predictor.device)
-    transformed_boxes = predictor.transform.apply_boxes_torch(input_boxes, image.shape[:2])
-    transformed_points = predictor.transform.apply_coords_torch(input_point, image.shape[:2])
-    masks  = embed_box_and_point_predict(input_point=transformed_points,
+    input_box = np.array([350, 300, 900, 1000])
+    input_point = np.array([[575, 750], [0, 0], [80, 700]])
+    input_label = np.array([1, 1, 0])
+    masks, input_box, input_point, input_label  = embed_box_and_point_predict(input_point=input_point,
                                          input_label=input_label,
-                                         input_box=transformed_boxes,
+                                         input_box=input_box,
                                          predictor=predictor)
     plt.figure(figsize=(10,10))
     plt.imshow(image)
-    for mask in masks:
-        show_mask(mask.cpu().numpy(), plt.gca(), random_color=True)
-    for box in input_boxes:
-        show_box(box.cpu().numpy(), plt.gca())
+    show_mask(masks, plt.gca(), random_color=True)
+    show_box(input_box, plt.gca())
     show_points(input_point, input_label, plt.gca())
     plt.axis('off')
     plt.savefig("./mask3.png")
     
     
     
-    # input_point = np.array([[500, 375]])
-    # input_label = np.array([1])
-    # mask, mask_input = embed_point_predict(input_point=input_point,
-    #                                        input_label=input_label,
-    #                                        predictor=predictor)
+    input_point = np.array([[500, 375]])
+    input_label = np.array([1])
+    mask, mask_input, input_point, input_label = embed_point_predict(input_point=input_point,
+                                           input_label=input_label,
+                                           predictor=predictor)
     
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(image)
-    # show_mask(mask, plt.gca())
-    # show_points(input_point, input_label, plt.gca())
-    # plt.axis('off')
-    # plt.savefig("./mask0.png")  
+    plt.figure(figsize=(10,10))
+    plt.imshow(image)
+    show_mask(mask, plt.gca())
+    show_points(input_point, input_label, plt.gca())
+    plt.axis('off')
+    plt.savefig("./mask0.png")  
     
-    # input_point = np.array([[500, 375], [20, 20]])
-    # input_label = np.array([1, 1])
-    # mask, mask_input = embed_point_predict(input_point=input_point,
-    #                                        input_label=input_label,
-    #                                        predictor=predictor,
-    #                                        mask_input=mask_input)
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(image)
-    # show_mask(mask, plt.gca())
-    # show_points(input_point, input_label, plt.gca())
-    # plt.axis('off')
-    # plt.savefig("./mask1.png")  
+    input_point = np.array([[500, 375], [20, 20]])
+    input_label = np.array([1, 1])
+    mask, mask_input, input_point, input_label = embed_point_predict(input_point=input_point,
+                                           input_label=input_label,
+                                           predictor=predictor,
+                                           mask_input=mask_input)
+    plt.figure(figsize=(10,10))
+    plt.imshow(image)
+    show_mask(mask, plt.gca())
+    show_points(input_point, input_label, plt.gca())
+    plt.axis('off')
+    plt.savefig("./mask1.png")  
     
     
-    # input_point = np.array([[500, 375], [20, 20]])
-    # input_label = np.array([1, 0])
-    # mask, mask_input = embed_point_predict(input_point=input_point,
-    #                                        input_label=input_label,
-    #                                        predictor=predictor,
-    #                                        mask_input=mask_input)
-    # print(mask.shape)
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(image)
-    # show_mask(mask, plt.gca())
-    # show_points(input_point, input_label, plt.gca())
-    # plt.axis('off')
-    # plt.savefig("./mask2.png")  
+    input_point = np.array([[500, 375], [20, 20]])
+    input_label = np.array([1, 0])
+    mask, mask_input, input_point, input_label = embed_point_predict(input_point=input_point,
+                                           input_label=input_label,
+                                           predictor=predictor,
+                                           mask_input=mask_input)
+    print(mask.shape)
+    print(mask.shape) # 此时的mask的形状为1050x1050
+    plt.figure(figsize=(10,10))
+    plt.imshow(image)
+    show_mask(mask, plt.gca())
+    show_points(input_point, input_label, plt.gca())
+    plt.axis('off')
+    plt.savefig("./mask2.png")  
     
