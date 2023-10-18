@@ -108,41 +108,41 @@ def after_upload():
     return image, image_embedding, ort_session, predictor
 
 if __name__ == "__main__":
-    # inference_image()
-    import time
-    t1 = time.time()
-    # 交互式分割，需要传递图片提取特征
-    image, image_embedding, ort_session, predictor = after_upload()
-    t2  = time.time()
-    print("image embedding:{}".format(t2-t1))
-    # prompt的编码
-    input_point = np.array([[500, 375]])
-    input_label = np.array([1])
-    onnx_coord, onnx_label = resize_point(input_point, input_label, predictor, image)
-    onnx_mask_input = np.zeros((1, 1, 256, 256), dtype=np.float32)
-    onnx_has_mask_input = np.zeros(1, dtype=np.float32)
-    ort_inputs = {
-    "image_embeddings": image_embedding,
-    "point_coords": onnx_coord,
-    "point_labels": onnx_label,
-    "mask_input": onnx_mask_input,
-    "has_mask_input": onnx_has_mask_input,
-    "orig_im_size": np.array(image.shape[:2], dtype=np.float32)
-}
+    inference_image()
+#     import time
+#     t1 = time.time()
+#     # 交互式分割，需要传递图片提取特征
+#     image, image_embedding, ort_session, predictor = after_upload()
+#     t2  = time.time()
+#     print("image embedding:{}".format(t2-t1))
+#     # prompt的编码
+#     input_point = np.array([[500, 375]])
+#     input_label = np.array([1])
+#     onnx_coord, onnx_label = resize_point(input_point, input_label, predictor, image)
+#     onnx_mask_input = np.zeros((1, 1, 256, 256), dtype=np.float32)
+#     onnx_has_mask_input = np.zeros(1, dtype=np.float32)
+#     ort_inputs = {
+#     "image_embeddings": image_embedding,
+#     "point_coords": onnx_coord,
+#     "point_labels": onnx_label,
+#     "mask_input": onnx_mask_input,
+#     "has_mask_input": onnx_has_mask_input,
+#     "orig_im_size": np.array(image.shape[:2], dtype=np.float32)
+# }
 
-    masks, _, low_res_logits = ort_session.run(None, ort_inputs)
-    masks = masks > predictor.model.mask_threshold
-    print(masks.shape)
-    t3 = time.time()
-    print("prompt and inference: {}".format(t3-t2))
-    import matplotlib.pyplot as plt
-    plt.figure(figsize=(10,10))
-    plt.imshow(image)
-    show_mask(masks, plt.gca())
-    show_points(input_point, input_label, plt.gca())
-    plt.savefig("./result_0.jpg")
-    t4 = time.time()
-    print("save image{}".format(t4-t3))
+#     masks, _, low_res_logits = ort_session.run(None, ort_inputs)
+#     masks = masks > predictor.model.mask_threshold
+#     print(masks.shape)
+#     t3 = time.time()
+#     print("prompt and inference: {}".format(t3-t2))
+#     import matplotlib.pyplot as plt
+#     plt.figure(figsize=(10,10))
+#     plt.imshow(image)
+#     show_mask(masks, plt.gca())
+#     show_points(input_point, input_label, plt.gca())
+#     plt.savefig("./result_0.jpg")
+#     t4 = time.time()
+#     print("save image{}".format(t4-t3))
     # plt.cla()
     # plt.clf()
     

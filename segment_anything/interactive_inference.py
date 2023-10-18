@@ -81,6 +81,7 @@ def embed_box_and_point_predict(input_point=None,
         point_labels=input_label,
         box=input_box,
         multimask_output=False)
+    masks = masks.astype(int)
     return masks, input_box, input_point, input_label
 
 if __name__ == "__main__":
