@@ -130,7 +130,7 @@ class Segmentation_2D_Dataset():
     def __getitem__(self, index):
         image_input = {}
         mask_name = self.all_ground_truth_masks[index]
-        print(mask_name)
+        # print(mask_name)
         prefix = mask_name.split('.')[0][:-3]
         mask_path = os.path.join(self.mask_path_prefix, mask_name)
         gt_grayscale = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
