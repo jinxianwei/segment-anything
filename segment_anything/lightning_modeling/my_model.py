@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from metrics import SegMetrics
+import numpy as np
 
 from segment_anything import sam_model_registry
 
@@ -107,6 +108,9 @@ class Segmentation_2d(pl.LightningModule):
         self.model = sam_model_registry[model_type](checkpoint_path)
         self.loss_fn = FocalDiceloss_IoULoss()
         
+        self.epoch_iou = []
+        self.epoch_dice = []
+        
         # 冻结两者
         for name, param in self.model.named_parameters():
             if name.startswith("image_encoder") or name.startswith("prompt_encoder"):
@@ -156,14 +160,25 @@ class Segmentation_2d(pl.LightningModule):
         masks, low_res_masks, iou_predictions = self(batch)
         
         loss = self.loss_fn(masks, gt_mask, iou_predictions)
+        self.log('train_step_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
     
     def validation_step(self, batch, batch_idx):
         gt_mask = batch['label']
         masks, low_res_masks, iou_predictions = self(batch)
         train_batch_metrics = SegMetrics(masks, gt_mask, ['iou', 'dice'])
-        # train_iter_metrics = [train_iter_metrics[i] + train_batch_metrics[i] for i in range(len(['iou', 'dice']))]
+        self.epoch_iou.append(train_batch_metrics[0])
+        self.epoch_dice.append(train_batch_metrics[1])
         return train_batch_metrics
+    
+    def on_validation_epoch_end(self):
+        if not self.trainer.sanity_checking:
+            mean_epoch_iou = np.mean(self.epoch_iou)
+            mean_epoch_dice = np.mean(self.epoch_dice)
+            self.log("test_iou", mean_epoch_iou)
+            self.log("test_dice", mean_epoch_dice)
+        self.epoch_dice = []
+        self.epoch_iou = []
     
     def configure_optimizers(self) -> Any:
         self.optimizer = optim.SGD(params=self.model.mask_decoder.parameters(),

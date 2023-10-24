@@ -6,16 +6,20 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.core.datamodule import LightningDataModule
 from my_model import Segmentation_2d
 from my_datamodule import Segmentation_2D_Datamodule
+from pytorch_lightning.loggers import TensorBoardLogger
+logger = TensorBoardLogger('./tb_logs', name='segment-anything')
 
 def train(model, max_epoch, data_module):
-    trainer = pl.Trainer(max_epochs=max_epoch,
-                        accelerator='gpu',
-                        devices=2)
+    trainer = pl.Trainer(logger=logger,
+                         max_epochs=max_epoch,
+                         accelerator='gpu',
+                         devices=2,
+                         log_every_n_steps=1)
     trainer.fit(model, datamodule=data_module)
     
     
 if __name__ == "__main__":
-    model = Segmentation_2d(lr=1e-5,
+    model = Segmentation_2d(lr=2e-4,
                             model_type='vit_b',
                             checkpoint_path='/home/bennie/bennie/temp/segment-anything/sam_vit_b_01ec64.pth')
     data_module = Segmentation_2D_Datamodule(mask_path='/home/bennie/bennie/bennie_project/segment-anything/ground-truth-pixel/',

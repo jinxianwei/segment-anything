@@ -47,3 +47,4 @@ package-lock.json
 *.jpg
 
 lightning_logs/
+tb_logs/
