@@ -45,3 +45,5 @@ package-lock.json
 *.tif
 *.png
 *.jpg
+
+lightning_logs/
