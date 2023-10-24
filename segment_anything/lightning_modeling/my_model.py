@@ -10,11 +10,6 @@ from metrics import SegMetrics
 from segment_anything import sam_model_registry
 
 
-
-model_type = 'vit_b'
-checkpoint = '/home/bennie/bennie/temp/segment-anything/sam_vit_b_01ec64.pth'
-device = 'cuda:0'
-
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2.0, alpha=0.25):
         super(FocalLoss, self).__init__()
@@ -103,14 +98,18 @@ class FocalDiceloss_IoULoss(nn.Module):
         return loss
 
 class Segmentation_2d(pl.LightningModule):
-    def __init__(self) -> None:
+    def __init__(self, 
+                 model_type: str = 'vit_b',
+                 checkpoint_path: str = 'sam_vit_b_01ec64.pth',
+                 lr: float = 1e-4) -> None:
         super().__init__()
-        self.model = sam_model_registry[model_type](checkpoint)
+        self.lr = lr
+        self.model = sam_model_registry[model_type](checkpoint_path)
         self.loss_fn = FocalDiceloss_IoULoss()
         
         # 冻结两者
         for name, param in self.model.named_parameters():
-            if name.startswith("vision_encoder") or name.startswith("prompt_encoder"):
+            if name.startswith("image_encoder") or name.startswith("prompt_encoder"):
                 param.requires_grad_(False)
         
         
@@ -168,5 +167,5 @@ class Segmentation_2d(pl.LightningModule):
     
     def configure_optimizers(self) -> Any:
         self.optimizer = optim.SGD(params=self.model.mask_decoder.parameters(),
-                                   lr=1e-4)
+                                   lr=self.lr)
         return self.optimizer

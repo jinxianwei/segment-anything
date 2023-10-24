@@ -115,9 +115,11 @@ def get_boxes_from_mask(mask, box_num=1, std = 0.1, max_pixel = 5):
     return torch.as_tensor(noise_boxes, dtype=torch.float)
 
 class Segmentation_2D_Dataset():
-    def __init__(self) -> None:
-        self.mask_path_prefix = '/home/bennie/bennie/bennie_project/segment-anything/ground-truth-pixel/'
-        self.img_path_prefix = '/home/bennie/bennie/bennie_project/segment-anything/scans/'
+    def __init__(self, 
+                 mask_path='/home/bennie/bennie/bennie_project/segment-anything/ground-truth-pixel/', 
+                 img_path='/home/bennie/bennie/bennie_project/segment-anything/scans/') -> None:
+        self.mask_path_prefix = mask_path
+        self.img_path_prefix = img_path
         self.all_ground_truth_masks = sorted(os.listdir(self.mask_path_prefix))[:100]
 
         self.pixel_mean = [123.675, 116.28, 103.53]

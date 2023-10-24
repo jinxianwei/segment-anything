@@ -32,6 +32,5 @@ python segment_anything/lightning_modeling/my_engine.py
 TODO
 pytorch lightning框架微调的完善
 
-[ ] 暴露数据集数据路径  
-[ ] 完善model类型选择，学习率外露，评估指标和loss的记录  
+[ ] 评估指标和loss的记录  
 [ ] 完善engine中自动保存权重  

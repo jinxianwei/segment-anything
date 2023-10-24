@@ -14,11 +14,15 @@ class Segmentation_2D_Datamodule(pl.LightningDataModule):
     """Pytorch_lightning.LightningDataModule
     """
     def __init__(self,
+                 mask_path: str = 'ground-truth-pixel/',
+                 img_path: str = 'scans/',
                  split_test: float = 0.2,
                  batch_size: int = 2,
                  num_workers: int = 0,
                  random_seed: int = 2023):
         super().__init__()
+        self.mask_path = mask_path
+        self.img_path = img_path
         self.split_test = split_test
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -26,7 +30,8 @@ class Segmentation_2D_Datamodule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         torch.manual_seed(2023) # 固定随机种子
-        MyDataset = Segmentation_2D_Dataset()
+        MyDataset = Segmentation_2D_Dataset(mask_path=self.mask_path,
+                                            img_path=self.img_path)
         test_size = int(self.split_test * len(MyDataset))
         train_size = len(MyDataset) - test_size
         if stage == 'fit':
