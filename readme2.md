@@ -29,8 +29,3 @@ pip install -e .
 python segment_anything/lightning_modeling/my_engine.py
 ```
 
-TODO
-pytorch lightning框架微调的完善
-
-[ ] 评估指标和loss的记录  
-[ ] 完善engine中自动保存权重  

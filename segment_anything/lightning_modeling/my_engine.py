@@ -9,11 +9,21 @@ from my_datamodule import Segmentation_2D_Datamodule
 from pytorch_lightning.loggers import TensorBoardLogger
 logger = TensorBoardLogger('./tb_logs', name='segment-anything')
 
+def all_callback_list():
+    callback_list = []
+    save_best_callback = ModelCheckpoint(monitor='test_dice', mode=
+        'max', dirpath='./best_ckpt/', filename=
+        '{epoch}_best_{test_dice}', every_n_epochs=1)
+    callback_list.append(save_best_callback)
+    return callback_list
+
 def train(model, max_epoch, data_module):
+    callback_list = all_callback_list()
     trainer = pl.Trainer(logger=logger,
                          max_epochs=max_epoch,
                          accelerator='gpu',
-                         devices=2,
+                         devices=1,
+                         callbacks=callback_list,
                          log_every_n_steps=1)
     trainer.fit(model, datamodule=data_module)
     
