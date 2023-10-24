@@ -151,7 +151,7 @@ class Segmentation_2d(pl.LightningModule):
         for i, idx in enumerate(max_indexs):
             low_res.append(low_res_masks[i:i+1, idx])
         low_res_masks = torch.stack(low_res, 0)
-        masks = F.interpolate(low_res_masks,(1024, 1024), mode="bilinear", align_corners=False,)  # 这里的尺寸还原为多少，应该和mask的大小一致吧
+        masks = F.interpolate(low_res_masks,(1024, 1024), mode="bilinear", align_corners=False,)  # 这里的尺寸需要还原为与mask的尺寸一致
         return masks, low_res_masks, iou_predictions
 
     
